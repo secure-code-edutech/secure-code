@@ -33,7 +33,8 @@ Struktur dan isi repo ini akan digunakan selama sesi training:
 ## 👩‍💻 Akses & Kolaborasi
 Untuk mendapatkan akses sebagai **collaborator** pada repo ini (agar dapat berkontribusi, fork, atau mengikuti sesi praktik langsung), silakan isi form berikut:
 
-👉 **[Google Form – GitHub Access Request](https://forms.gle/vT41TxqMZZZA9ovQ8)**  
+👉 **[Google Form – GitHub Access Request]<a href="https://forms.gle/vT41TxqMZZZA9ovQ8" target="_blank">👉 Google Form – GitHub Access Request</a>
+**  
 *(isi dengan email GitHub aktif Anda)*
 
 Setelah data Anda diverifikasi oleh tim training, undangan kolaborator akan dikirim secara otomatis melalui GitHub.
