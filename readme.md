@@ -18,7 +18,7 @@ Pelatihan ini bertujuan untuk membantu developer memahami dan menerapkan **keama
 ## 🧱 Struktur Repository
 Struktur dan isi repo ini akan digunakan selama sesi training:
 
-    ```bash
+    
     secure-code/
     │
     ├── /slides/        → Materi presentasi  
