@@ -17,14 +17,14 @@ Pelatihan ini bertujuan untuk membantu developer memahami dan menerapkan **keama
 
 ## 🧱 Struktur Repository
 Struktur dan isi repo ini akan digunakan selama sesi training:
-
-secure-code/
-│
-├── /slides/ → Materi presentasi
-├── /labs/ → Hands-on practice (kode rentan & perbaikan)
-├── /solutions/ → Solusi dan pembahasan
-├── /references/ → Dokumen dan referensi tambahan
-└── README.md → Dokumentasi ini
+    ```bash
+    secure-code/
+    │
+    ├── /slides/        → Materi presentasi  
+    ├── /labs/          → Hands-on practice (kode rentan & perbaikan)  
+    ├── /solutions/     → Solusi dan pembahasan  
+    ├── /references/    → Dokumen dan referensi tambahan  
+    └── README.md       → Dokumentasi ini
 
 
 ---
@@ -55,4 +55,9 @@ Sebelum memulai sesi praktik, pastikan Anda telah menyiapkan:
 2. **Clone** ke lokal:
    ```bash
    git clone https://github.com/<your-username>/secure-code-training.git
-   git checkout -b nama-anda
+3. Buka folder project:
+    ```bash
+    cd secure-code-training
+
+4. Ikuti instruksi di folder /labs selama sesi training
+5. Commit hasil latihan ke branch masing-masing peserta
