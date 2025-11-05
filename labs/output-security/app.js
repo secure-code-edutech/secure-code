@@ -4,6 +4,12 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// tambahkan di file app.js atau server.js
+const helmet = require('helmet');
+app.use(helmet());
+// jika perlu mengatur CSP lebih lanjut:
+app.use(helmet.contentSecurityPolicy({ directives: { defaultSrc: ["'self'"] } }));
+
 // view engine
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
