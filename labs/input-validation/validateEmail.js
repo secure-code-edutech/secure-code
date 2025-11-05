@@ -5,16 +5,14 @@ function validateEmail(email) {
   if (typeof email !== "string") return { ok: false, error: "invalid_format" };
 
   // normalize
-  const raw = email.trim();
+  const raw = email.trim().toLowerCase();
   if (raw.length === 0) {
     return { ok: false, error: "invalid_format" };
   } else if (raw.length > 254) {
     return { ok: false, error: "invalid_format" };
+  } else if (!simpleEmailRegex.test(raw)) {
+    return { ok: false, error: "invalid_format" };
   }
 
-  // basic whitelist regex
-  if (!simpleEmailRegex.test(raw))
-    return { ok: false, error: "invalid_format" };
-
-  return { ok: true, value: raw.toLowerCase() };
+  return { ok: true, value: raw };
 }
