@@ -20,6 +20,12 @@ app.get('/error', (req, res, next) => {
   next(new Error('Simulated test error'));
 });
 
+app.use((req, res, next) => {
+  const err = new Error(`Not Found: ${req.originalUrl}`);
+  err.status = 404;
+  next(err);
+});
+
 // register error handler (vulnerable variant provided)
 const errorHandler = require('./middleware/errorHandler');
 app.use(errorHandler);
