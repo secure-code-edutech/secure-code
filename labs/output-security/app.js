@@ -10,9 +10,20 @@ app.set('view engine', 'ejs');
 
 // simple route: profile (renders user-provided name)
 app.get('/profile', (req, res) => {
+  //   function escapeHTML(str = '') {
+  // return str
+  //   .replace(/&/g, '&amp;')
+  //   .replace(/</g, '&lt;')
+  //   .replace(/>/g, '&gt;')
+  //   .replace(/"/g, '&quot;')
+  //   .replace(/'/g, '&#39;');
+  // }
+  // const q = escapeHTML(req.query.name);
+  // const name = q || 'Guest';
   const name = req.query.name || 'Guest';
   res.render('profile', { user: { name } });
 });
+
 
 // route to trigger error for testing
 app.get('/error', (req, res, next) => {
