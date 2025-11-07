@@ -1,9 +1,9 @@
 # Secure Code Review - Rhesa Daiva Bremana
-Project: vulnerable.js
-Tanggal: 2025-11-07
+## Project: vulnerable.js
+## Tanggal: 2025-11-07
 
 ## Summary (1–2 kalimat)
-Ringkasan temuan dan prioritas (mis. "Ditemukan 6 issue, 2 high, 4 medium").
+Ditemukan 7 issue, 3 high, 4 medium, ada beberapa temuan medium yang berpotensi naik menjadi High apabila tidak segera dimitgasi.
 
 ## Findings (minimum 5)
 1. **Issue:** SQL Injection  
