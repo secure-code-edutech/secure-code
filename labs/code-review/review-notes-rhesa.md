@@ -1,9 +1,9 @@
 # Secure Code Review - Rhesa Daiva Bremana
 Project: vulnerable.js
-Tanggal: YYYY-MM-DD
+Tanggal: 2025-11-07
 
 ## Summary (1–2 kalimat)
-Ringkasan temuan dan prioritas (mis. "Ditemukan 6 issue, 2 high, 2 medium, 1 low").
+Ringkasan temuan dan prioritas (mis. "Ditemukan 6 issue, 2 high, 4 medium").
 
 ## Findings (minimum 5)
 1. **Issue:** SQL Injection  
@@ -16,7 +16,7 @@ Ringkasan temuan dan prioritas (mis. "Ditemukan 6 issue, 2 high, 2 medium, 1 low
 2. **Issue:** Improper error Handling
    **Location:** /search handler (baris 102)
    **POC:**: memasukkan karakter yang dapat menimbulkan error pada sistem `')`
-   **Risk:** Attacker bisa mengetahui tech stack dan celah pada sistem yang dapat dieksploitasi.
+   **Risk:** Medium - Attacker bisa mengetahui tech stack dan celah pada sistem yang dapat dieksploitasi.
    **Recommendation:** Proper error handling dengan menggunakan `try catch`, gunakan pesan generik untuk error yang disebabkan dari kesalahan sistem
    **Evidence:** ![Improper Error Handling DB](./evidence/Search - DB Error message.png)
 
@@ -50,7 +50,12 @@ Ringkasan temuan dan prioritas (mis. "Ditemukan 6 issue, 2 high, 2 medium, 1 low
 7. **Issue:** Insecure secret Handling
    **Location:** /bad-secret (baris 267)
    **Risk:** kebocoran kredensial sensitif ketika kode di-commit ke repositori (terutama publik), yang memungkinkan penyerang mendapatkan akses tak terbatas ke API atau sumber daya internal Anda. Setelah bocor, rahasia ini sulit dirotasi dan dapat dieksploitasi untuk pengambilalihan akun atau layanan. 
+   **Recommendation:** Gunakan Environment Variable / Vault Key
 
+8. **Issue:** : Naive Login (PlainText Password)
+   **Location:** /login post handler (baris 318)
+   **Risk:** jika terjadi kebocoran database, maka data kredensial akan terlihat dengan jelas karen a tidak menggunakan hashed passowrd. Selain itu, kurangnya mekanisme keamanan tambahan seperti rate limiting memudahkan serangan brute force atau credential stuffing.
+   **Recommendation:** Gunakan hash dan salt dalam menyimpan password, serta terapkan rate-limiter pada aplikasi.
 
 ## Verification / How I tested
 - POC yang saya gunakan sudah tersedia di atas
@@ -113,7 +118,18 @@ const API_TOKEN = process.env.MY_API_SECRET || "fallback-insecure-token";
 ```
 
 - Selalu Hash dan Salt password pengguna saat disimpan dan verifikasi saat login menggunakan fungsi hashing yang kuat (misalnya, bcrypt).
+```js
+// PERBAIKAN: Menggunakan fungsi perbandingan hash (simulasi)
+// if (bcrypt.compareSync(password, row.hashed_passwordcolumn)) {
+if (row.password === password) { 
+// ...
+
+```
 
 ## Notes
-- Prioritas: (High / Medium / Low)
-- Keterangan tambahan / risiko bisnis
+- Risiko bisnis:
+1. Kerugian Finansial & Reputasi Pelanggan: Kebocoran data akibat SQL Injection dan Insecure Plaintext Login dapat menyebabkan pencurian identitas atau informasi kartu kredit (jika ada), yang merusak kepercayaan customer secara permanen dan memicu tuntutan hukum.
+
+2. Kerusakan Merek dan Penurunan Adopsi Pengguna: Kerentanan Stored/Reflected XSS dan IDOR dapat digunakan untuk defacement situs atau pengambilalihan akun pengguna, mengusir pengguna baru dan memperburuk citra merek.
+
+3. Hukuman Kepatuhan dan Gangguan Operasional: Insecure Secret Handling dan data breach yang diakibatkannya dapat melanggar regulasi privasi data, mengakibatkan denda besar dan menghentikan layanan utama secara mendadak.
