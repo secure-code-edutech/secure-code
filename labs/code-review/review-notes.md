@@ -1,35 +1,80 @@
 # Secure Code Review - <Nama Peserta>
 Project: vulnerable.js
-Tanggal: YYYY-MM-DD
+Tanggal: 2025-11-07
 
-## Summary (1–2 kalimat)
-Ringkasan temuan dan prioritas (mis. "Ditemukan 5 issue, 2 high, 2 medium, 1 low").
-
-## Findings (minimum 5)
+## Findings (minimum 3)
 1. **Issue:** SQL Injection  
-   **Location:** /search handler (baris XX)  
+   **Location:** endpoint /search
+   const sql = `SELECT id, title, content FROM posts WHERE title LIKE '%${q}%' OR content LIKE '%${q}%'`; (baris 80)
+
+   **Masalah:** Input pengguna (q) langsung disisipkan ke dalam query SQL tanpa validasi atau parameter binding. Penyerang dapat memasukkan payload seperti: "?q=' OR '1'='1"
+
    **Risk:** High — attacker bisa manipulasi query dan mengeksekusi query arbitrary.  
-   **Recommendation:** Gunakan parameterized query / prepared statements. Contoh: `db.get("SELECT ... WHERE name LIKE ?", ['%'+q+'%'])`.
+   **Recommendation:** Gunakan prepared statement / parameterized query: Contoh: 
+   'db.all("SELECT id,title,content FROM posts WHERE title LIKE ? OR content LIKE ?", [`%${q}%`, `%${q}%`], ...)';
+.
 
 2. **Issue:** Stored XSS  
-   **Location:** /comments render (baris XX)  
+   **Location:** endpoint /comments 
+   out += `<li>Post ${r.post_id} - <b>${escapeHtml(r.author)}:</b> ${r.body}</li>`;
+   (baris 137) 
+
+   **Masalah:** r.body tidak di-escape, sehingga jika pengguna menyimpan <script> atau payload XSS, script tersebut dijalankan setiap kali halaman komentar dibuka.
+   Ini dapat mencuri cookie session, melakukan CSRF, atau defacing UI.
+
    **Risk:** High — payload tersimpan dan dieksekusi pada pengunjung.  
-   **Recommendation:** Encode on output atau gunakan sanitizer (DOMPurify) sebelum render.
+   **Recommendation:** Escape output sebelum render: ${escapeHtml(r.body)} atau Sanitasi input ketika menyimpan
 
 3. **Issue:** IDOR / Broken Access Control  
-   **Location:** /product/:id (baris XX)  
+   **Location:** Endpoint /posts/:id
+   db.get(`SELECT id, owner_id, title, content FROM posts WHERE id = ${id}`, ...
+   (baris 104)
+
+   **Masalah:** Tidak ada verifikasi apakah pengguna yang mengakses memiliki izin terhadap owner_id dari post tersebut.
+   Semua pengguna bisa mengakses postingan milik orang lain → kebocoran data pribadi/privat.  
+
    **Risk:** High — resource diakses tanpa authorization check.  
-   **Recommendation:** Periksa ownership/permissions sebelum return resource.
+   **Recommendation:** Terapkan sistem login & session atau Cek apakah req.user.id === row.owner_id atau role = admin sebelum menampilkan konten.
 
+   
 4. **Issue:** Reflected XSS  
-   **Location:** /reflect (baris XX)  
-   **Risk:** Medium — input langsung direfleksikan ke page.  
-   **Recommendation:** Escape output dan validasi input.
+   **Location:** Endpoint Get /reflect
+   app.get('/reflect', (req, res) => {
+  const msg = req.query.msg || '';
+  res.send(`
+    ...
+    <p>Server echoed (vulnerable): ${msg}</p> <!-- vulnerable: msg not escaped here -->
+    ...
+  `);
+}); (baris 160)  
 
-5. **Issue:** DOM-based XSS (client)  
-   **Location:** /dom (script block)  
-   **Risk:** Medium — penggunaan innerHTML dengan data dari location.hash.  
-   **Recommendation:** Gunakan textContent / safe DOM APIs.
+   **Masalah:** nilai msg dari query string disisipkan langsung ke HTML tanpa escaping/encoding. Jika attacker memasukkan HTML/JS di msg, browser akan merendernya — sehingga terjadi reflected XSS.
+
+   **Risk:** Medium — input langsung direfleksikan ke page.  
+   **Recommendation:** 
+   1. Escape output : <p>Server echoed (safe): ${escapeHtml(msg)}</p>
+   2. Validasi input
+   3. Tambahkan Content Security Policy (CSP) : app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'");
+  next();
+});
+
+   4. Hindari innerHTML / raw HTML di client-side : out.textContent = decoded;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Verification / How I tested
 - Contoh request/URL yang saya pakai untuk reproduce (screen capture disertakan jika ada).
